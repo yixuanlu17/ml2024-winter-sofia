@@ -1,2 +1,2 @@
 # ml2024-winter-sofia
-# For sofia ML course use only
+For sofia ML course use only
