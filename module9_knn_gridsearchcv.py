@@ -1,6 +1,6 @@
-
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import accuracy_score
 
 def read_pairs(n):
@@ -14,21 +14,6 @@ def read_pairs(n):
         y_vals.append(y)
     return np.array(x_vals).reshape(-1, 1), np.array(y_vals)
 
-def find_best_k(train_X, train_y, test_X, test_y):
-    """Finds the best k for kNN classifier based on test set accuracy."""
-    best_accuracy = 0
-    best_k = 1
-    for k in range(1, 11):  # Trying k from 1 to 10
-        classifier = KNeighborsClassifier(n_neighbors=k)
-        classifier.fit(train_X, train_y)
-        predictions = classifier.predict(test_X)
-        accuracy = accuracy_score(test_y, predictions)
-        print(f"k={k}, Test Accuracy={accuracy}")
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            best_k = k
-    return best_k, best_accuracy
-
 # Main program
 N = int(input("Enter N (number of training pairs): "))
 train_X, train_y = read_pairs(N)
@@ -36,5 +21,21 @@ train_X, train_y = read_pairs(N)
 M = int(input("Enter M (number of test pairs): "))
 test_X, test_y = read_pairs(M)
 
-best_k, best_accuracy = find_best_k(train_X, train_y, test_X, test_y)
-print(f"The best k is {best_k} with a test accuracy of {best_accuracy}.")
+# Setting up the parameter grid for k values from 1 to 10
+param_grid = {'n_neighbors': list(range(1, 11))}
+
+# Creating the kNN classifier and GridSearchCV objects
+knn = KNeighborsClassifier()
+grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='accuracy')
+
+# Fitting GridSearchCV on the training data
+grid_search.fit(train_X, train_y)
+
+# Predicting on the test set with the best found model
+best_knn = grid_search.best_estimator_
+predictions = best_knn.predict(test_X)
+
+# Calculating and printing the best k and test accuracy
+best_k = grid_search.best_params_['n_neighbors']
+test_accuracy = accuracy_score(test_y, predictions)
+print(f"The best k is {best_k} with a test accuracy of {test_accuracy}.")
